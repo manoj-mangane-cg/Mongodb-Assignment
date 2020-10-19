@@ -1,5 +1,6 @@
+===========================================
 Mongo DB
-
+===========================================
 - It is NOSQL ( Not Only SQL)
 - No Schema 
 - Can store anytype of data ie. Wide Variety of Data
