@@ -1,0 +1,206 @@
+Mongo DB
+
+- It is NOSQL ( Not Only SQL)
+- No Schema 
+- Can store anytype of data ie. Wide Variety of Data
+- It uses the BjSON  (Binary JSON) Data Format
+- No standard structure needed (i.e. more flexible)
+- Data Format is flexible 
+- No/Few Relation
+- Store the data in key-value and collection
+- Doesn't support use of Foreign Key & Triggers
+- It is good fit for Hierarchical Data Storage
+- Scalability: Horizontally by adding more servers
+- CAP Therom 
+	- Consistency
+	- Availability
+	- Partition Tolerance
+
+ADVANTAGES of Mongo DB:
+- No Schema
+- Easy Scability Sharding
+- ACID Properties at document ( ) Level
+- Failover Mechanisum
+- Authentication features such as LDAP, AD
+- Cost Effective 
+
+Study Material: https://www.studytonight.com/mongodb/data-modelling-in-mongodb
+
+Mongo DB Atlas 
+https://cloud.mongodb.com/v2/5f8cc8dce8f1d748cb8f9fe8#clusters
+scott/ti
+
+For Login to Mongo DB 
+
+Go to Cmd prompt where your mongodb install
+cmd C:\Users\mmangane\OneDrive - Capgemini\Documents\MyInstallation\mongodb-win32-x86_64-windows-4.4.1\bin
+mongo "mongodb+srv://cluster0.37nv5.mongodb.net/test" --username scott
+
+From Compass GUI : mongodb+srv://scott:<password>@cluster0.37nv5.mongodb.net/test
+
+NoSQL --------> RDBMS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Collections --> Tables
+
+
+
+--Show all the databases 
+show dbs
+
+admin  0.000GB
+local  3.674GB
+
+--Create the new databases
+ use first-test-db
+ switched to db first-test-db
+ 
+ --Access Users collection which is not exist
+ 
+ **Insertion
+ To Store Data in users collection 
+	--either one 
+			your-path> db.users.insertOne({name:'Max', age : 29})db.users.insertOne({name:'Max', age : 29})
+		{
+				"acknowledged" : true,
+				"insertedId" : ObjectId("5f8cd005a186c87337f527d8")
+		}
+		your-path> show dbs
+		admin          0.000GB
+		first-test-db  0.000GB
+		local          3.674GB
+		your-path> show collections
+		users
+		your-path> db.users.find()
+		{ "_id" : ObjectId("5f8cd005a186c87337f527d8"), "name" : "Max", "age" : 29 }
+		your-path>
+
+
+	--Many records insertion : use [] array brackets
+	your-path> db.users.insertMany([{name:'Manu', age : 24}, {name:'Criss', age : 25}])
+	{
+			"acknowledged" : true,
+			"insertedIds" : [
+					ObjectId("5f8cd105a186c87337f527d9"),
+					ObjectId("5f8cd105a186c87337f527da")
+			]
+	}
+	your-path> db.users.find()
+	{ "_id" : ObjectId("5f8cd005a186c87337f527d8"), "name" : "Max", "age" : 29 }
+	{ "_id" : ObjectId("5f8cd105a186c87337f527d9"), "name" : "Manu", "age" : 24 }
+	{ "_id" : ObjectId("5f8cd105a186c87337f527da"), "name" : "Criss", "age" : 25 }
+	your-path> db.users.insertOne({name:'Lisa', age : 25})
+	{
+			"acknowledged" : true,
+			"insertedId" : ObjectId("5f8cd12da186c87337f527db")
+	}
+	your-path> db.users.find()
+	{ "_id" : ObjectId("5f8cd005a186c87337f527d8"), "name" : "Max", "age" : 29 }
+	{ "_id" : ObjectId("5f8cd105a186c87337f527d9"), "name" : "Manu", "age" : 24 }
+	{ "_id" : ObjectId("5f8cd105a186c87337f527da"), "name" : "Criss", "age" : 25 }
+	{ "_id" : ObjectId("5f8cd12da186c87337f527db"), "name" : "Lisa", "age" : 25 }
+	your-path>     
+	
+	--If you want to find the records whose age = 25
+	your-path> db.users.find({age: 25})
+	{ "_id" : ObjectId("5f8cd105a186c87337f527da"), "name" : "Criss", "age" : 25 }
+	{ "_id" : ObjectId("5f8cd12da186c87337f527db"), "name" : "Lisa", "age" : 25 }
+	
+		--If you want to find the records whose age is greater than 25
+	your-path> db.users.find({age: {$gt: 25}})
+	{ "_id" : ObjectId("5f8cd005a186c87337f527d8"), "name" : "Max", "age" : 29 }
+
+** Nested SQL query
+	--Nested Documents Insertion i.e address
+	
+	your-path> db.users.insertOne({name:'Susa', age : 30, address: [{city: 'Mumbai', Street: 'FirstStreet'}]})
+	{
+			"acknowledged" : true,
+			"insertedId" : ObjectId("5f8cd26ea186c87337f527dc")
+	}
+	your-path> db.users.find()
+	{ "_id" : ObjectId("5f8cd005a186c87337f527d8"), "name" : "Max", "age" : 29 }
+	{ "_id" : ObjectId("5f8cd105a186c87337f527d9"), "name" : "Manu", "age" : 24 }
+	{ "_id" : ObjectId("5f8cd105a186c87337f527da"), "name" : "Criss", "age" : 25 }
+	{ "_id" : ObjectId("5f8cd12da186c87337f527db"), "name" : "Lisa", "age" : 25 }
+	{ "_id" : ObjectId("5f8cd26ea186c87337f527dc"), "name" : "Susa", "age" : 30, "address" : [ { "city" : "Mumbai", "Street" : "FirstStreet" } ] }
+	
+	--Find the address whose city is Mumbai	
+	your-path> db.users.find({"address.city":'Mumbai'})
+	{ "_id" : ObjectId("5f8cd26ea186c87337f527dc"), "name" : "Susa", "age" : 30, "address" : [ { "city" : "Mumbai", "Street" : "FirstStreet" } ] }
+	
+	--Find the address whose city is Mumbai	-1 : returns no records
+	your-path> db.users.find({"address.city":'Mumbai-1'})
+	your-path>  
+
+**Update SQL Query
+		
+	--List all the users
+	your-path> db.users.find()
+	{ "_id" : ObjectId("5f8cd005a186c87337f527d8"), "name" : "Max", "age" : 29 }
+	{ "_id" : ObjectId("5f8cd105a186c87337f527d9"), "name" : "Manu", "age" : 24 }
+	{ "_id" : ObjectId("5f8cd105a186c87337f527da"), "name" : "Criss", "age" : 25 }
+	{ "_id" : ObjectId("5f8cd12da186c87337f527db"), "name" : "Lisa", "age" : 25 }
+	{ "_id" : ObjectId("5f8cd26ea186c87337f527dc"), "name" : "Susa", "age" : 30, "address" : [ { "city" : "Mumbai", "Street" : "FirstStreet" } ] }
+
+		-- Update the age to 30 whose name is Max
+		
+		$set update means patch update
+		
+		SYNTAX: db.<collection-name>.update({where-condition/criteria},{which records needs to be updated along with $set: {update coln name and values}. 
+		If you were not adding the $set then it will delete the remaining columns and keep that column data only })
+	your-path> db.users.update({name:'Max'},{$set: {age: 30}})
+	WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+	your-path>      
+	
+	--update without $set
+	
+		
+	--List all the users
+	your-path> db.users.find()
+	{ "_id" : ObjectId("5f8cd005a186c87337f527d8"), "name" : "Max", "age" : 29 }
+	{ "_id" : ObjectId("5f8cd105a186c87337f527d9"), "name" : "Manu", "age" : 24 }
+	{ "_id" : ObjectId("5f8cd105a186c87337f527da"), "name" : "Criss", "age" : 25 }
+	{ "_id" : ObjectId("5f8cd12da186c87337f527db"), "name" : "Lisa", "age" : 25 }
+	{ "_id" : ObjectId("5f8cd26ea186c87337f527dc"), "name" : "Susa", "age" : 30, "address" : [ { "city" : "Mumbai", "Street" : "FirstStreet" } ] }
+
+		
+	your-path> db.users.update({name:'Max'}, {age: 30}) <--------------------@@@@@@
+	WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+	your-path> db.users.find()
+	{ "_id" : ObjectId("5f8cd005a186c87337f527d8"), "age" : 30 }<--------------------@@@@@@
+	{ "_id" : ObjectId("5f8cd105a186c87337f527d9"), "name" : "Manu", "age" : 24 }
+	{ "_id" : ObjectId("5f8cd105a186c87337f527da"), "name" : "Criss", "age" : 25 }
+	{ "_id" : ObjectId("5f8cd12da186c87337f527db"), "name" : "Lisa", "age" : 25 }
+	{ "_id" : ObjectId("5f8cd26ea186c87337f527dc"), "name" : "Susa", "age" : 30, "address" : [ { "city" : "Mumbai", "Street" : "FirstStreet" } ] }
+	
+
+**Delete SQL Query	
+
+	-- Delete one
+	
+	your-path> db.users.find()
+	{ "_id" : ObjectId("5f8cd005a186c87337f527d8"), "age" : 30 }<--------------------@@@@@@
+	{ "_id" : ObjectId("5f8cd105a186c87337f527d9"), "name" : "Manu", "age" : 24 }
+	{ "_id" : ObjectId("5f8cd105a186c87337f527da"), "name" : "Criss", "age" : 25 }
+	{ "_id" : ObjectId("5f8cd12da186c87337f527db"), "name" : "Lisa", "age" : 25 }
+	{ "_id" : ObjectId("5f8cd26ea186c87337f527dc"), "name" : "Susa", "age" : 30, "address" : [ { "city" : "Mumbai", "Street" : "FirstStreet" } ] }
+	your-path> db.users.deleteOne({age:30})<--------------------@@@@@@
+	{ "acknowledged" : true, "deletedCount" : 1 }
+	your-path> db.users.find()
+	{ "_id" : ObjectId("5f8cd105a186c87337f527d9"), "name" : "Manu", "age" : 24 }
+	{ "_id" : ObjectId("5f8cd105a186c87337f527da"), "name" : "Criss", "age" : 25 }
+	{ "_id" : ObjectId("5f8cd12da186c87337f527db"), "name" : "Lisa", "age" : 25 }
+	{ "_id" : ObjectId("5f8cd26ea186c87337f527dc"), "name" : "Susa", "age" : 30, "address" : [ { "city" : "Mumbai", "Street" : "FirstStreet" } ] }
+	your-path> db.users.deleteOne({age:'30'})
+	{ "acknowledged" : true, "deletedCount" : 0 }<--------------------@@@@@@
+	your-path>
+	
+	--Delete Many
+	your-path> db.users.find()
+	{ "_id" : ObjectId("5f8cd105a186c87337f527d9"), "name" : "Manu", "age" : 24 }
+	{ "_id" : ObjectId("5f8cd105a186c87337f527da"), "name" : "Criss", "age" : 25 }
+	{ "_id" : ObjectId("5f8cd12da186c87337f527db"), "name" : "Lisa", "age" : 25 }
+	{ "_id" : ObjectId("5f8cd26ea186c87337f527dc"), "name" : "Susa", "age" : 30, "address" : [ { "city" : "Mumbai", "Street" : "FirstStreet" } ] }
+	your-path> db.users.deleteMany({age:25})
+	{ "acknowledged" : true, "deletedCount" : 2 }
+	your-path>
