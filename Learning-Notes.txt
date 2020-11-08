@@ -29,7 +29,7 @@ Study Material: https://www.studytonight.com/mongodb/data-modelling-in-mongodb
 
 Mongo DB Atlas 
 https://cloud.mongodb.com/v2/5f8cc8dce8f1d748cb8f9fe8#clusters
-manoj.mangane@capgemini.com/Dadaji@
+manoj.mangane@capgemini.com/Dad****
 
 
 For Login to Mongo DB 
