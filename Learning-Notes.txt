@@ -29,15 +29,21 @@ Study Material: https://www.studytonight.com/mongodb/data-modelling-in-mongodb
 
 Mongo DB Atlas 
 https://cloud.mongodb.com/v2/5f8cc8dce8f1d748cb8f9fe8#clusters
-scott/ti
+manoj.mangane@capgemini.com/Dadaji@
+
 
 For Login to Mongo DB 
 
 Go to Cmd prompt where your mongodb install
-cmd C:\Users\mmangane\OneDrive - Capgemini\Documents\MyInstallation\mongodb-win32-x86_64-windows-4.4.1\bin
+cmd cd C:\Users\mmangane\OneDrive - Capgemini\Documents\MyInstallation\mongodb-win32-x86_64-windows-4.4.1\bin
 mongo "mongodb+srv://cluster0.37nv5.mongodb.net/test" --username scott
+tiger
+mongo "mongodb+srv://cluster0.37nv5.mongodb.net/test" --username root
 
-From Compass GUI : mongodb+srv://scott:<password>@cluster0.37nv5.mongodb.net/test
+From Compass GUI : mongodb+srv://scott:tiger@cluster0.37nv5.mongodb.net/test
+
+BKP LOCAL DB CONNECTIONS:
+mongodb+srv://scott:tiger@cluster0.37nv5.mongodb.net/test?authSource=admin&replicaSet=atlas-en2ej2-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true
 
 NoSQL --------> RDBMS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -205,3 +211,593 @@ local  3.674GB
 	your-path> db.users.deleteMany({age:25})
 	{ "acknowledged" : true, "deletedCount" : 2 }
 	your-path>
+
+Get the database details such as batchstorage etc...
+ -	db.isMaster()
+======================================================================================
+MongoDB Basics Functions: 
+ CRUD – Create (insert(), insertOne(), insertMany())
+
+--insert() & insertMany() has one flag called order. Its optional flag...
+  
+CRUD – Read (find(), findOne())
+	find().pretty() : Same as beautify the response 
+	find().explain() : Same as sql explain
+======================================================================================	
+MongoDB Javascript Functions
+
+MongoDB Enterprise atlas-en2ej2-shard-0:PRIMARY> db.users.insert
+function(obj, options) {
+    if (!obj)
+        throw Error("no object passed to insert!");
+
+    var flags = 0;
+
+    var wc = undefined;
+    var allowDottedFields = false;
+    if (options === undefined) {
+        // do nothing
+    } else if (typeof (options) == 'object') {
+        if (options.ordered === undefined) {
+            // do nothing, like above
+        } else {
+            flags = options.ordered ? 0 : 1;
+        }
+
+        if (options.writeConcern)
+            wc = options.writeConcern;
+        if (options.allowdotted)
+            allowDottedFields = true;
+    } else {
+        flags = options;
+    }
+
+    // 1 = continueOnError, which is synonymous with unordered in the write commands/bulk-api
+    var ordered = ((flags & 1) == 0);
+
+    if (!wc)
+        wc = this.getWriteConcern();
+
+    var result = undefined;
+    var startTime =
+        (typeof (_verboseShell) === 'undefined' || !_verboseShell) ? 0 : new Date().getTime();
+
+    if (this.getMongo().writeMode() != "legacy") {
+        // Bit 1 of option flag is continueOnError. Bit 0 (stop on error) is the default.
+        var bulk = ordered ? this.initializeOrderedBulkOp() : this.initializeUnorderedBulkOp();
+        var isMultiInsert = Array.isArray(obj);
+
+        if (isMultiInsert) {
+            obj.forEach(function(doc) {
+                bulk.insert(doc);
+            });
+        } else {
+            bulk.insert(obj);
+        }
+
+        try {
+            result = bulk.execute(wc);
+            if (!isMultiInsert)
+                result = result.toSingleResult();
+        } catch (ex) {
+            if (ex instanceof BulkWriteError) {
+                result = isMultiInsert ? ex.toResult() : ex.toSingleResult();
+            } else if (ex instanceof WriteCommandError) {
+                result = ex;
+            } else {
+                // Other exceptions rethrown as-is.
+                throw ex;
+            }
+        }
+    } else {
+        if (typeof (obj._id) == "undefined" && !Array.isArray(obj)) {
+            var tmp = obj;  // don't want to modify input
+            obj = {_id: new ObjectId()};
+            for (var key in tmp) {
+                obj[key] = tmp[key];
+            }
+        }
+
+        this.getMongo().insert(this._fullName, obj, flags);
+
+        // enforce write concern, if required
+        if (wc)
+            result = this.runCommand("getLastError", wc instanceof WriteConcern ? wc.toJSON() : wc);
+    }
+
+    this._lastID = obj._id;
+    this._printExtraInfo("Inserted", startTime);
+    return result;
+}
+MongoDB Enterprise atlas-en2ej2-shard-0:PRIMARY>  
+
+
+MongoDB Enterprise atlas-en2ej2-shard-0:PRIMARY> db.users.insert([{"name" : "CrissLyn", "age" : 25},{"name" : "Henry", "age" : 24}],{order: false})
+BulkWriteResult({
+        "writeErrors" : [ ],
+        "writeConcernErrors" : [ ],
+        "nInserted" : 2,
+        "nUpserted" : 0,
+        "nMatched" : 0,
+        "nModified" : 0,
+        "nRemoved" : 0,
+        "upserted" : [ ]
+})
+MongoDB Enterprise atlas-en2ej2-shard-0:PRIMARY>                                                                                                                           
+
+MongoDB Enterprise atlas-en2ej2-shard-0:PRIMARY> db.users.find().pretty()
+{
+        "_id" : ObjectId("5f8cd105a186c87337f527d9"),
+        "name" : "Manu",
+        "age" : 24
+}
+{
+        "_id" : ObjectId("5f8cd26ea186c87337f527dc"),
+        "name" : "Susa",
+        "age" : 30,
+        "address" : [
+                {
+                        "city" : "Mumbai",
+                        "Street" : "FirstStreet"
+                }
+        ]
+}
+{
+        "_id" : ObjectId("5f9766a806b070ce04979722"),
+        "name" : "CrissLyn",
+        "age" : 25
+}
+{
+        "_id" : ObjectId("5f9766a806b070ce04979723"),
+        "name" : "Henry",
+        "age" : 24
+}
+
+MongoDB Enterprise atlas-en2ej2-shard-0:PRIMARY> show collections
+products
+users
+MongoDB Enterprise atlas-en2ej2-shard-0:PRIMARY> db.users.find()
+{ "_id" : ObjectId("5f8cd105a186c87337f527d9"), "name" : "Manu", "age" : 24 }
+{ "_id" : ObjectId("5f8cd26ea186c87337f527dc"), "name" : "Susa", "age" : 30, "address" : [ { "city" : "Mumbai", "Street" : "FirstStreet" } ] }
+MongoDB Enterprise atlas-en2ej2-shard-0:PRIMARY> db.users.find().pretty()
+{
+        "_id" : ObjectId("5f8cd105a186c87337f527d9"),
+        "name" : "Manu",
+        "age" : 24
+}
+{
+        "_id" : ObjectId("5f8cd26ea186c87337f527dc"),
+        "name" : "Susa",
+        "age" : 30,
+        "address" : [
+                {
+                        "city" : "Mumbai",
+                        "Street" : "FirstStreet"
+                }
+        ]
+}
+MongoDB Enterprise atlas-en2ej2-shard-0:PRIMARY>   
+
+MongoDB Enterprise atlas-en2ej2-shard-0:PRIMARY> db.users.find().explain()
+{
+        "queryPlanner" : {
+                "plannerVersion" : 1,
+                "namespace" : "first-test-db.users",
+                "indexFilterSet" : false,
+                "parsedQuery" : {
+
+                },
+                "queryHash" : "8B3D4AB8",
+                "planCacheKey" : "8B3D4AB8",
+                "winningPlan" : {
+                        "stage" : "COLLSCAN",
+                        "direction" : "forward"
+                },
+                "rejectedPlans" : [ ]
+        },
+        "serverInfo" : {
+                "host" : "cluster0-shard-00-01.37nv5.mongodb.net",
+                "port" : 27017,
+                "version" : "4.2.10",
+                "gitVersion" : "88276238fa97b47c0ef14362b343c5317ecbd739"
+        },
+        "ok" : 1,
+        "$clusterTime" : {
+                "clusterTime" : Timestamp(1603757510, 3),
+                "signature" : {
+                        "hash" : BinData(0,"TgIE/oFosJnWYJspkb0paziuakA="),
+                        "keyId" : NumberLong("6884935607458463747")
+                }
+        },
+        "operationTime" : Timestamp(1603757510, 3)
+}
+
+========================================================================
+Mongo Compass:
+1. Get the data for 'status=PUBLISH' and 'pageCount= 600
+{'status':'PUBLISH', 'pageCount': 600}
+
+2. Get the Data EITHER for 'status=PUBLISH' OR 'pageCount= 600
+{$or: [{'status':'PUBLISH'}, {'pageCount': 600}]}
+
+3.  Get the data for whose pageCount is greater than 400
+{'pageCount':{$gt: 400}}
+
+
+1: True/Display AND 0 : False/ DO not show
+--------------------------------------------------
+4. Select only title and pageCount in your query
+Project : SAME AS SElect :
+{'title':1,'pageCount':1}
+
+SORT : 1: ASC 0 : DESC: -1
+--------------------------------------------------
+{'pageCount':1} <-- ASC on PageCount
+{'pageCount':-1}<-- DESC on PageCount
+
+Multiple SORT : {'title':1, 'pageCount':1}
+
+Skip: (nextPageNo-1)*PageSize
+
+Entire Query for all above  options by hitting ... on Mongo Compass GUI
+{
+ filter: {
+  pageCount: {
+   $gt: 400
+  }
+ },
+ project: {
+  title: 1,
+  pageCount: 1
+ },
+ sort: {
+  title: 1,
+  pageCount: 1
+ },
+ skip: 20,
+ limit: 10
+}
+========================================================================
+1.3 Aggregation/Grouping Functions in MongoD
+
+Some Aggregation/Grouping Stage operators: 
+$match, $group, $project, $sort, $count, $limit, $skip, $out
+
+SYNTAX:
+{$match: {<query>}}
+
+Example:
+{$match: {city: 'Mumbai'}}
+{$match: {age: {$gt: 18}}}
+{$match: {$and[{city: 'Mumbai'},{age: {$gt: 18}}]}}
+-------------------------------
+SYNTAX:
+{$group: {_id: <expression>, <field1>: 
+	{<accumulator1>:<expression1>}, .... }}
+
+Example:
+{ $group : {_id: "$age"} }
+{ $group : {_id: { age: "$age", gender: $gender} }
+{ $group : {_id: "$age"} }
+
+db.person.aggregate([
+	{ $group : {_id: "$age"} }
+])
+
+--> Nested group field
+db.person.aggregate([
+	{ $group : {_id: "$company.location.country"} }
+])
+
+$group by multiple fields Example
+db.person.aggregate([
+	{ $group : {_id: { age: "$age", gender: $gender} }
+])
+
+$match & $group Part 1
+db.person.aggregate([
+	// Stage 1 
+	{$match: {city: 'Mumbai'}},
+	//Stage 2
+	{ $group : {_id: { age: "$age", gender: $gender} }
+])
+
+$match & $group Part 2 ->>>>> Gets Null Records : BCOZ Order matters and city is missing in stage 1
+
+db.person.aggregate([
+	// Stage 1 
+	{ $group : {_id: { age: "$age", gender: $gender} }
+	//Stage 2
+	{$match: {city: 'Mumbai'}}
+])
+
+$match & $group Part 3 ->>>>> 
+
+db.person.aggregate([
+	// Stage 1 
+	{ $group : {_id: { age: "$age", gender: $gender, city: $city} }
+	//Stage 2
+	{$match: {city: 'Mumbai'}}
+])
+
+-------------------------------
+0: Field excluded
+1: Field Included in query
+_id by default visible
+
+SYNTAX:
+{$project: {<query>}}
+
+Example:
+{$project: {<filed1>: <1>, <filed2>: <0>, ...}}
+
+{$project : {	age: 1, "name.company": 1} 
+{$project : {_id: 0 , age: 1, name: 1} 
+{$project : { age:0, name: 0} 
+{$project : { name: 1, newAge: "$age"} 
+
+db.person.aggregate([
+	{$project : {	age: 1, "name.company": 1} ,
+	{$sort: {age: 1}}
+])
+
+Applying $project with restructuring
+
+db.person.aggregate([
+	{$project : {
+		age: 1, 
+		"name.company": 1,
+		info: {
+			eye: "$eyeColor",
+			country: "$company.location.country"
+		}
+	} 
+])
+-------------------------------------------------------
+ After match and group 
+ 1 : ASC
+ -1 : DESC
+
+SYNTAX:
+{$sort: {<query>}}
+
+Example:
+{$sort: {age: 1, country: 1}}
+
+db.person.aggregate([
+	{ $group : {_id: "$age"} },
+	{$sort: {_id: 1}}
+])
+
+db.person.aggregate([
+	{$group : {_id: {age: "$age", name: "$name"} },
+	{$sort: {"_id.age": 1, "_id.name": -1}}
+])
+
+db.person.aggregate([
+	{$match: {age: {$ne: 18}}},
+	{$group : {_id: {age: "$age", name: "$name"} },
+	{$sort: {"_id.age": 1, "_id.name": -1}}
+])
+-------------------------------
+SYNTAX:
+{$count: {<query>}}
+
+Example:
+{$count: "countries"}
+
+db.person.aggregate([
+	{$count: "allDocsCount"}
+])
+
+$count methods with different documents
+db.person.aggregate([]).toArray().length <--1.7 sec : Client side count
+
+db.person.aggregate([]).itCount() <--1.4 sec : Client side count
+
+db.person.aggregate([{$count: "countries"}]) <-- 0.21 sec : Server side count
+db.person.find({}).count() 					 <-- 0.21 sec : Server side count
+
+
+$group & $count Example
+db.person.aggregate([
+	//Stage 1
+	{ $group : {_id: "$company.location.country"} },
+	//Stage 2
+	{$count: "distinctCountriesCnt"}
+])
+
+
+db.person.aggregate([
+	//Stage 1
+	{$match: {city: 'Mumbai'}},
+	//Stage 2
+	{ $group : {_id: "$company.location.country"} },
+	//Stage 3
+	{$count: "distinctCountriesCnt"}
+])
+-------------------------------------------------------
+SYNTAX:
+{$limit: <number>}
+
+Example:
+
+
+db.person.aggregate([
+	//Stage 0
+	{$limit: 100}
+	
+	//Stage 1
+	{$match: {city: 'Mumbai'}},
+	//Stage 2
+	{ $group : {_id: "$company.location.country"} },
+	//Stage 3
+	{$count: "distinctCountriesCnt"}
+])
+-------------------------------
+SYNTAX:
+{$skip: {<query>}}
+
+Example:
+
+-------------------------------------------------------
+SYNTAX: USE: Documents from the $group stage will be written to the collection "aggregateResults"
+{$out: {<query>}}
+
+Example:
+
+db.person.aggregate([
+	//Stage 0
+	{ $group : {_id: { age: "$age", eyeColor: "$eyeColor"} } },
+	{$out: "aggregateResults"}
+])
+--------------------------------------------------------------
+$unwind
+
+Example:
+
+Documents-1 : {...tags:["first", "second","Third"]}
+						|
+				  Input	|
+						|
+						V
+					Unwind		
+						|
+				Output	|
+						|
+						V
+Documents-1 : {...tags:"first"}
+Documents-2 : {...tags:"second"}
+Documents-3 : {...tags:"Third"}
+
+
+db.person.aggregate([
+	//Stage 0
+	{$unwind: "$tags"}
+	
+	//Stage 1
+	{$project : {
+			tags: 1,
+			age: 1, 
+			"name.company": 1,
+			info: {
+				eye: "$eyeColor",
+				country: "$company.location.country"
+			}
+		} 
+	}
+])
+
+$unwind with group
+
+db.person.aggregate([
+	//Stage 0
+	{$unwind: "$tags"}
+	
+	//Stage 1
+	{$group: {"_id": "$tags"}}
+])
+
+--------------------------------------------------------------
+accumulator
+
+{$sum: <expression | number>}
+{totalSum: {$sum: "$quantity" } }
+
+{$avg: <expression>}
+{avgAge: {$avg: "$age } }
+
+------------------------------
+
+Unary Operator: we will find the BASON Datatype for a particular field
+
+$type operator
+
+{$type: <expression> }
+{$type: "$age"} --> returns --> Int
+{$type: "$name"} --> returns --> String
+
+db.person.aggregate([
+	{
+		$project: {
+			name: 1,
+			ageType: {$type: "$age"},
+			eyeColorType: {$type: "$eyeColor"},
+			tagsType: {$type: "$tags"},
+			companyType: {$type: "$company"}
+		}
+	}
+])
+
+RESULT Will be:
+{
+	"_id": 'Object(asd###############)
+	"name": "Manoj",
+	"ageType" : "int" ,
+	"eyeColorType": "string",
+	"tagsType": "array",
+	"companyType": "Object"
+}
+------------------
+
+AllowDiskUse Option
+===========================================================================================================================
+										1.4 Indexing in MongoDB
+==========================================================================================================================
+
+Improved query executions
+IXSCAN : much faster than collection scan
+MongoDB Indexing uses B-Tree -- bczo search and sort is faster
+Default Index for each collection is _id & its unique, can not delete it
+
+Index Creation Process
+Key {indexKeyColName: sortOrder(1: ASC OR -1: DESC)}
+
+
+db.<collection-name>.getIndexes() ---> returns array
+
+Example:
+db.getCollection('persons').getIndexes() ;
+
+
+###### Creating New Indexes
+Syntax:
+db.collection.createIndex({indexKeyColName: [sortOrder(1: ASC OR -1: DESC)]}, <options>)
+
+Example: 
+db.persons.createIndex({age: 1})
+db.persons.createIndex({name: -1})
+
+Types of Indexes in MongoDB
+
+{background: true} <--------for realtime records or live db or larger collection
+{unique: true     } <----- unique index
+{name: <indexNAme>} <------- custome index names otherwise it will take defaultname
+
+######  Query Performance with Index
+ 
+ - Return information about query
+ db.<collection-name>.explain().<method> <--------------- Return small results
+db.<collection-name>.explain("executionStats").<method> <--------------- Return big results
+
+Example:
+ db.persons.explain().find({"age": {$lt: 24} })
+
+ExecutionStats with RegEx
+ db.persons.explain().find({"name": /man/i }) <-------- req ex for whose name starts with "man" & which is case insensative
+
+
+###### Deleting Index
+
+Syntax:
+db.persons.dropIndex({<field-name>: 1}) <---------drop only defined index
+db.persons.dropIndexes() <---------drop all indexes except "_id" index
+
+Example: 
+db.persons.dropIndex({age: 1}) <-------drop age index
+
+db.persons.dropIndexes() <---------drop all indexes
+
+===========================================================================================================================
+										1.5 Advance MongoDB
+==========================================================================================================================
